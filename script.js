@@ -34,7 +34,6 @@ function init() {
 function attachNav() {
   document.getElementById('nav-home').addEventListener('click', () => {
     state.view = 'landing';
-    state.role = 'student';
     render();
   });
   document.getElementById('nav-courses').addEventListener('click', () => {
@@ -46,7 +45,7 @@ function attachNav() {
     render();
   });
   document.getElementById('nav-help').addEventListener('click', () => {
-    showToast('Help is on the way – reach us at help@biggie-cheese.bombastic');
+    showToast('Help: Students join with a 4-digit PIN or QR. Lecturers create courses/sessions and share the PIN/QR.');
   });
 }
 
@@ -89,13 +88,16 @@ function renderLanding() {
     <section class="screen active">
       <div class="hero">
         <div class="hero-copy">
+          <p class="eyebrow">Live course feedback</p>
+          <h1>Collect quick, anonymous evaluations in class</h1>
+          <p class="muted">Lecturers create a session and share a PIN/QR. Students answer in seconds and results appear immediately.</p>
         </div>
         <div class="role-grid">
           <div class="role-card student">
             <h2>For Students</h2>
             <p class="muted">Join an active session with a PIN or scan a QR code.</p>
             <div class="input-row">
-              <input id="student-pin" type="text" placeholder="PIN" maxlength="6" value="${state.student.pin || ''}" />
+              <input id="student-pin" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="4-digit PIN" maxlength="4" value="${state.student.pin || ''}" aria-label="Session PIN" />
               <button class="primary" id="join-pin" type="button">Join</button>
             </div>
             <button class="secondary" id="use-camera" type="button">Use camera 📷</button>
@@ -522,9 +524,8 @@ function renderPreviewContent(preview) {
 }
 
 function renderScaleLabels() {
-  const labels = Array.from({ length: 10 }, (_, idx) => {
-    return '';
-  });
+  // Provide explicit labels to support recognition and interpretation of the scale.
+  const labels = Array.from({ length: 10 }, (_, idx) => String(idx + 1));
   return `<div class="scale-labels">${labels.map((text) => `<span>${text}</span>`).join('')}</div>`;
 }
 
@@ -581,8 +582,8 @@ function renderAnalytics() {
         <div class="chart">
           <p class="question-title">${question.title}</p>
           <div class="chip-row">
-            <button class="secondary small" id="view-answers">View individual answers</button>
-            <button class="ghost small" id="ai-summary">Create AI summary</button>
+            <button class="secondary small view-answers" type="button" data-question="${question.id}">View individual answers</button>
+            <button class="ghost small ai-summary" type="button" data-question="${question.id}">Create AI summary</button>
           </div>
           ${responses.length ? `<ul class="text-list">${responses.map((r) => `<li>“${r}”</li>`).join('')}</ul>` : '<p class="muted small">No responses yet.</p>'}
           ${!state.activeSession.responses.length ? '<p class="muted tiny">Waiting for responses…</p>' : ''}
@@ -643,8 +644,10 @@ function bindHandlers(view) {
     document.getElementById('submit-answers').addEventListener('click', submitAnswers);
     const cancel = document.getElementById('cancel-session');
     if (cancel) cancel.addEventListener('click', () => {
-      state.view = 'landing';
-      render();
+      if (confirm('Leave the session? Your unsaved answers will be lost.')) {
+        state.view = 'landing';
+        render();
+      }
     });
     const back = document.getElementById('back-home');
     if (back) back.addEventListener('click', () => {
@@ -825,12 +828,12 @@ function bindHandlers(view) {
       state.view = 'sessions';
       render();
     });
-    const viewButtons = document.querySelectorAll('#view-answers');
-    viewButtons.forEach((btn) => btn.addEventListener('click', () => {
-      showToast('Viewing individual answers');
-    }));
-    const aiButtons = document.querySelectorAll('#ai-summary');
-    aiButtons.forEach((btn) => btn.addEventListener('click', summarizeAI));
+    document.querySelectorAll('.view-answers').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        showToast('Individual answers are listed below the question.');
+      }),
+    );
+    document.querySelectorAll('.ai-summary').forEach((btn) => btn.addEventListener('click', summarizeAI));
   }
 }
 
@@ -840,7 +843,12 @@ function selectedChoice(questionId, choice) {
 
 function joinByPin() {
   state.role = 'student';
-  const session = findSessionByPin(state.student.pin.trim());
+  const pin = (state.student.pin || '').trim();
+  if (!/^\d{4}$/.test(pin)) {
+    showToast('Please enter a valid 4-digit PIN.');
+    return;
+  }
+  const session = findSessionByPin(pin);
   if (!session) {
     showToast('Session not found. Check the PIN.');
     return;
@@ -936,7 +944,11 @@ function saveEdits() {
   render();
 }
 
-function deleteResponse(entryId) {
+function deleteResponse(entryId, skipConfirm = false) {
+  if (!skipConfirm) {
+    const ok = confirm('Delete this evaluation? This cannot be undone.');
+    if (!ok) return;
+  }
   const entryIndex = state.studentHistory.findIndex((h) => h.id === entryId);
   if (entryIndex === -1) return;
   const entry = state.studentHistory[entryIndex];
