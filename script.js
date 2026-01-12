@@ -5,10 +5,6 @@ const uid = () =>
 
 const CURRENT_USER_ID = 'currentUser';
 
-
-// ----------------------------
-// Global application state
-// ----------------------------
 const state = {
   view: 'landing',
   previousView: 'sessions',
@@ -26,8 +22,6 @@ const state = {
   preview: null,
 };
 
-
-// Handles UI rendering for this section
 function init() {
   if (state.courses.length) {
     state.activeCourse = state.courses[0];
@@ -37,15 +31,13 @@ function init() {
   render();
 }
 
-
-// Main logic wrapper for this feature
 function attachNav() {
-  document.getElementById('nav-home').addEventListener('click', () => { // user interaction
+  document.getElementById('nav-home').addEventListener('click', () => {
     state.view = 'landing';
     state.role = 'student';
     render();
   });
-  document.getElementById('nav-courses').addEventListener('click', () => { // user interaction
+  document.getElementById('nav-courses').addEventListener('click', () => {
     if (state.role !== 'lecturer') {
       showToast('Lecturer area only. Sign in with WebSSO first.');
       return;
@@ -53,13 +45,11 @@ function attachNav() {
     state.view = 'courses';
     render();
   });
-  document.getElementById('nav-help').addEventListener('click', () => { // user interaction
+  document.getElementById('nav-help').addEventListener('click', () => {
     showToast('Help is on the way – reach us at help@biggie-cheese.bombastic');
   });
 }
 
-
-// Updates internal state and triggers UI refresh
 function render() {
   const main = document.getElementById('main');
   main.innerHTML = renderView(state.view);
@@ -67,8 +57,6 @@ function render() {
   updateToast();
 }
 
-
-// Helper function used in multiple places
 function renderView(view) {
   switch (view) {
     case 'landing':
@@ -96,16 +84,11 @@ function renderView(view) {
   }
 }
 
-
-// Event handler registered during init phase
 function renderLanding() {
   return `
     <section class="screen active">
       <div class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">Human-centered classroom feedback</p>
-          <h1>Engage students and measure understanding in real-time.</h1>
-          <p class="muted">Guided by Norman's principles, the prototype balances clear signifiers, feedback, and graceful recoveries. Choose your role to jump into the flow.</p>
         </div>
         <div class="role-grid">
           <div class="role-card student">
@@ -128,8 +111,6 @@ function renderLanding() {
   `;
 }
 
-
-// Utility function – naming is historical
 function renderStudentSession() {
   if (!state.activeSession || !state.activeCourse) {
     return `
@@ -141,10 +122,6 @@ function renderStudentSession() {
       </section>
     `;
   }
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const questions = state.activeSession.questions
     .map((question) => {
       if (question.type === 'scale') {
@@ -218,8 +195,6 @@ function renderStudentSession() {
   `;
 }
 
-
-// Core workflow logic
 function renderCompletion() {
   return `
     <section class="screen">
@@ -235,8 +210,6 @@ function renderCompletion() {
   `;
 }
 
-
-// Handles UI rendering for this section
 function renderHistory() {
   return `
     <section class="screen">
@@ -271,8 +244,6 @@ function renderHistory() {
   `;
 }
 
-
-// Main logic wrapper for this feature
 function renderEditResponse() {
   if (!state.editingEntry || !state.activeSession || !state.activeCourse) {
     return `
@@ -285,10 +256,6 @@ function renderEditResponse() {
     `;
   }
 
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const questions = state.activeSession.questions
     .map((question) => {
       if (question.type === 'scale') {
@@ -361,8 +328,6 @@ function renderEditResponse() {
   `;
 }
 
-
-// Updates internal state and triggers UI refresh
 function renderCourses() {
   return `
     <section class="screen">
@@ -403,8 +368,6 @@ function renderCourses() {
   `;
 }
 
-
-// Helper function used in multiple places
 function renderSessions() {
   if (!state.activeCourse) {
     return `
@@ -455,8 +418,6 @@ function renderSessions() {
   `;
 }
 
-
-// Event handler registered during init phase
 function renderShare() {
   if (!state.activeSession || !state.activeCourse) {
     return `
@@ -495,13 +456,7 @@ function renderShare() {
   `;
 }
 
-
-// Utility function – naming is historical
 function renderBuilder() {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const preview = state.preview
     ? `
       <div class="preview">
@@ -550,8 +505,6 @@ function renderBuilder() {
   `;
 }
 
-
-// Core workflow logic
 function renderPreviewContent(preview) {
   if (preview.type === 'scale') {
     return `
@@ -568,8 +521,6 @@ function renderPreviewContent(preview) {
   return `<div class="text-answer"><textarea placeholder="Learners respond here"></textarea></div>`;
 }
 
-
-// Handles UI rendering for this section
 function renderScaleLabels() {
   const labels = Array.from({ length: 10 }, (_, idx) => {
     return '';
@@ -577,8 +528,6 @@ function renderScaleLabels() {
   return `<div class="scale-labels">${labels.map((text) => `<span>${text}</span>`).join('')}</div>`;
 }
 
-
-// Main logic wrapper for this feature
 function renderAnalytics() {
   if (!state.activeSession || !state.activeCourse) {
     return `
@@ -590,10 +539,6 @@ function renderAnalytics() {
       </section>
     `;
   }
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const charts = state.activeSession.questions
     .map((question) => {
       if (question.type === 'scale') {
@@ -663,21 +608,20 @@ function renderAnalytics() {
   `;
 }
 
-// Updates internal state and triggers UI refresh
 function bindHandlers(view) {
   if (view === 'landing') {
-    document.getElementById('student-pin').addEventListener('input', (e) => { // user interaction
+    document.getElementById('student-pin').addEventListener('input', (e) => {
       state.student.pin = e.target.value;
     });
-    document.getElementById('join-pin').addEventListener('click', joinByPin); // user interaction
-    document.getElementById('use-camera').addEventListener('click', simulateScan); // user interaction
-    document.getElementById('start-lecturer').addEventListener('click', startLecturer); // user interaction
+    document.getElementById('join-pin').addEventListener('click', joinByPin);
+    document.getElementById('use-camera').addEventListener('click', simulateScan);
+    document.getElementById('start-lecturer').addEventListener('click', startLecturer);
     return;
   }
 
   if (view === 'studentSession') {
     document.querySelectorAll('input[type="range"]').forEach((input) => {
-      input.addEventListener('input', (e) => { // user interaction
+      input.addEventListener('input', (e) => {
         const questionId = e.target.dataset.question;
         state.studentAnswers[questionId] = Number(e.target.value);
         const pill = document.getElementById(`pill-${questionId}`);
@@ -685,25 +629,25 @@ function bindHandlers(view) {
       });
     });
     document.querySelectorAll('.chip').forEach((chip) => {
-      chip.addEventListener('click', (e) => { // user interaction
+      chip.addEventListener('click', (e) => {
         const { question, choice } = e.currentTarget.dataset;
         toggleChoice(question, choice);
         render();
       });
     });
     document.querySelectorAll('textarea[data-question]').forEach((field) => {
-      field.addEventListener('input', (e) => { // user interaction
+      field.addEventListener('input', (e) => {
         state.studentAnswers[e.target.dataset.question] = e.target.value;
       });
     });
-    document.getElementById('submit-answers').addEventListener('click', submitAnswers); // user interaction
+    document.getElementById('submit-answers').addEventListener('click', submitAnswers);
     const cancel = document.getElementById('cancel-session');
-    if (cancel) cancel.addEventListener('click', () => { // user interaction
+    if (cancel) cancel.addEventListener('click', () => {
       state.view = 'landing';
       render();
     });
     const back = document.getElementById('back-home');
-    if (back) back.addEventListener('click', () => { // user interaction
+    if (back) back.addEventListener('click', () => {
       state.view = 'landing';
       render();
     });
@@ -712,26 +656,18 @@ function bindHandlers(view) {
 
   if (view === 'completion') {
     const openHistory = document.getElementById('open-history');
-    if (openHistory) openHistory.addEventListener('click', () => { // user interaction
+    if (openHistory) openHistory.addEventListener('click', () => {
       state.view = 'history';
       render();
     });
     const editLatest = document.getElementById('edit-latest');
-    if (editLatest) editLatest.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+    if (editLatest) editLatest.addEventListener('click', () => {
       const latest = state.studentHistory[0];
       if (latest) openResponse(latest);
       else showToast('No submissions yet.');
     });
     const deleteLatest = document.getElementById('delete-latest');
-    if (deleteLatest) deleteLatest.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+    if (deleteLatest) deleteLatest.addEventListener('click', () => {
       const latest = state.studentHistory[0];
       if (latest) deleteResponse(latest.id);
     });
@@ -740,24 +676,20 @@ function bindHandlers(view) {
 
   if (view === 'history') {
     document.querySelectorAll('button[data-response-id]').forEach((btn) => {
-      btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+      btn.addEventListener('click', () => {
         const entry = state.studentHistory.find((h) => h.id === btn.dataset.responseId);
         if (entry) openResponse(entry);
       });
     });
     document.querySelectorAll('button[data-delete-id]').forEach((btn) => {
-      btn.addEventListener('click', () => deleteResponse(btn.dataset.deleteId)); // user interaction
+      btn.addEventListener('click', () => deleteResponse(btn.dataset.deleteId));
     });
     return;
   }
 
   if (view === 'editResponse') {
     document.querySelectorAll('input[type="range"]').forEach((input) => {
-      input.addEventListener('input', (e) => { // user interaction
+      input.addEventListener('input', (e) => {
         const questionId = e.target.dataset.question;
         state.studentAnswers[questionId] = Number(e.target.value);
         const pill = document.getElementById(`pill-${questionId}`);
@@ -765,26 +697,26 @@ function bindHandlers(view) {
       });
     });
     document.querySelectorAll('.chip').forEach((chip) => {
-      chip.addEventListener('click', (e) => { // user interaction
+      chip.addEventListener('click', (e) => {
         const { question, choice } = e.currentTarget.dataset;
         toggleChoice(question, choice);
         render();
       });
     });
     document.querySelectorAll('textarea[data-question]').forEach((field) => {
-      field.addEventListener('input', (e) => { // user interaction
+      field.addEventListener('input', (e) => {
         state.studentAnswers[e.target.dataset.question] = e.target.value;
       });
     });
-    document.getElementById('save-edits').addEventListener('click', saveEdits); // user interaction
-    document.getElementById('delete-response').addEventListener('click', () => { // user interaction
+    document.getElementById('save-edits').addEventListener('click', saveEdits);
+    document.getElementById('delete-response').addEventListener('click', () => {
       if (state.editingEntry) deleteResponse(state.editingEntry.id);
     });
-    document.getElementById('cancel-edit').addEventListener('click', () => { // user interaction
+    document.getElementById('cancel-edit').addEventListener('click', () => {
       state.view = 'history';
       render();
     });
-    document.getElementById('back-history').addEventListener('click', () => { // user interaction
+    document.getElementById('back-history').addEventListener('click', () => {
       state.view = 'history';
       render();
     });
@@ -792,21 +724,17 @@ function bindHandlers(view) {
   }
 
   if (view === 'courses') {
-    document.getElementById('course-name').addEventListener('input', (e) => { // user interaction
+    document.getElementById('course-name').addEventListener('input', (e) => {
       state.draftCourse.name = e.target.value;
     });
-    document.getElementById('create-course').addEventListener('click', createCourse); // user interaction
-    document.getElementById('sign-out').addEventListener('click', () => { // user interaction
+    document.getElementById('create-course').addEventListener('click', createCourse);
+    document.getElementById('sign-out').addEventListener('click', () => {
       state.role = 'student';
       state.view = 'landing';
       render();
     });
     document.querySelectorAll('button[data-open-course]').forEach((btn) => {
-      btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+      btn.addEventListener('click', () => {
         const course = state.courses.find((c) => c.id === btn.dataset.openCourse);
         if (course) {
           state.activeCourse = course;
@@ -816,11 +744,7 @@ function bindHandlers(view) {
       });
     });
     document.querySelectorAll('button[data-new-session]').forEach((btn) => {
-      btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+      btn.addEventListener('click', () => {
         const course = state.courses.find((c) => c.id === btn.dataset.newSession);
         if (course) createSession(course);
       });
@@ -830,40 +754,28 @@ function bindHandlers(view) {
 
   if (view === 'sessions') {
     const addSession = document.getElementById('add-session');
-    if (addSession) addSession.addEventListener('click', () => createSession(state.activeCourse)); // user interaction
+    if (addSession) addSession.addEventListener('click', () => createSession(state.activeCourse));
     const backToCourses = document.getElementById('back-to-courses');
     if (backToCourses)
-      backToCourses.addEventListener('click', () => { // user interaction
+      backToCourses.addEventListener('click', () => {
         state.view = 'courses';
         render();
       });
     if (state.activeCourse) {
       document.querySelectorAll('button[data-share-session]').forEach((btn) => {
-        btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+        btn.addEventListener('click', () => {
           const session = state.activeCourse.sessions.find((s) => s.id === btn.dataset.shareSession);
           if (session) shareSession(session);
         });
       });
       document.querySelectorAll('button[data-analytics-session]').forEach((btn) => {
-        btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+        btn.addEventListener('click', () => {
           const session = state.activeCourse.sessions.find((s) => s.id === btn.dataset.analyticsSession);
           if (session) openAnalytics(session);
         });
       });
       document.querySelectorAll('button[data-builder-session]').forEach((btn) => {
-        btn.addEventListener('click', () => { // user interaction
-
-// ----------------------------
-// Global application state
-// ----------------------------
+        btn.addEventListener('click', () => {
           const session = state.activeCourse.sessions.find((s) => s.id === btn.dataset.builderSession);
           if (session) openBuilder(session);
         });
@@ -874,7 +786,7 @@ function bindHandlers(view) {
 
   if (view === 'share') {
     renderQrCode();
-    document.getElementById('close-share').addEventListener('click', () => { // user interaction
+    document.getElementById('close-share').addEventListener('click', () => {
       state.view = state.previousView;
       render();
     });
@@ -886,21 +798,21 @@ function bindHandlers(view) {
     const titleInput = document.getElementById('questionText');
     const optionsInput = document.getElementById('questionOptions');
 
-    typeSelect.addEventListener('change', (e) => { // user interaction
+    typeSelect.addEventListener('change', (e) => {
       state.builder.type = e.target.value;
       render();
     });
-    titleInput.addEventListener('input', (e) => { // user interaction
+    titleInput.addEventListener('input', (e) => {
       state.builder.title = e.target.value;
     });
     if (optionsInput) {
-      optionsInput.addEventListener('input', (e) => { // user interaction
+      optionsInput.addEventListener('input', (e) => {
         state.builder.options = e.target.value;
       });
     }
-    document.getElementById('preview-question').addEventListener('click', previewQuestion); // user interaction
-    document.getElementById('save-question').addEventListener('click', saveQuestion); // user interaction
-    document.getElementById('close-builder').addEventListener('click', () => { // user interaction
+    document.getElementById('preview-question').addEventListener('click', previewQuestion);
+    document.getElementById('save-question').addEventListener('click', saveQuestion);
+    document.getElementById('close-builder').addEventListener('click', () => {
       state.view = 'sessions';
       render();
     });
@@ -909,42 +821,30 @@ function bindHandlers(view) {
 
   if (view === 'analytics') {
     const close = document.getElementById('close-analytics');
-    if (close) close.addEventListener('click', () => { // user interaction
+    if (close) close.addEventListener('click', () => {
       state.view = 'sessions';
       render();
     });
     const viewButtons = document.querySelectorAll('#view-answers');
-    viewButtons.forEach((btn) => btn.addEventListener('click', () => { // user interaction
+    viewButtons.forEach((btn) => btn.addEventListener('click', () => {
       showToast('Viewing individual answers');
     }));
     const aiButtons = document.querySelectorAll('#ai-summary');
-    aiButtons.forEach((btn) => btn.addEventListener('click', summarizeAI)); // user interaction
+    aiButtons.forEach((btn) => btn.addEventListener('click', summarizeAI));
   }
 }
 
-
-// Helper function used in multiple places
 function selectedChoice(questionId, choice) {
   return (state.studentAnswers[questionId] || []).includes(choice);
 }
 
-
-// Event handler registered during init phase
 function joinByPin() {
   state.role = 'student';
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const session = findSessionByPin(state.student.pin.trim());
   if (!session) {
     showToast('Session not found. Check the PIN.');
     return;
   }
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const course = state.courses.find((c) => c.sessions.includes(session));
   setActiveSession(session, course);
   const existing = getUserResponse(session);
@@ -954,8 +854,6 @@ function joinByPin() {
   render();
 }
 
-
-// Utility function – naming is historical
 function simulateScan() {
   if (!state.courses.length || !state.courses[0].sessions.length) {
     showToast('No sessions to join yet.');
@@ -965,8 +863,6 @@ function simulateScan() {
   joinByPin();
 }
 
-
-// Core workflow logic
 function startLecturer() {
   state.role = 'lecturer';
   state.view = 'courses';
@@ -974,13 +870,7 @@ function startLecturer() {
   render();
 }
 
-
-// Handles UI rendering for this section
 function toggleChoice(questionId, choice) {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const existing = state.studentAnswers[questionId] || [];
   if (existing.includes(choice)) {
     state.studentAnswers[questionId] = existing.filter((c) => c !== choice);
@@ -989,20 +879,10 @@ function toggleChoice(questionId, choice) {
   }
 }
 
-
-// Main logic wrapper for this feature
 function submitAnswers() {
   if (!state.activeSession || !state.activeCourse) return;
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const existing = getUserResponse(state.activeSession);
   const responseId = existing?.id || uid();
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const payload = { id: responseId, userId: CURRENT_USER_ID, student: 'You', answers: { ...state.studentAnswers } };
   if (existing) {
     Object.assign(existing, payload);
@@ -1025,18 +905,12 @@ function submitAnswers() {
   render();
 }
 
-
-// Updates internal state and triggers UI refresh
 function openResponse(entry) {
   const session = findSessionById(entry.sessionId);
   if (!session) {
     showToast('Session not found for this entry.');
     return;
   }
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const course = state.courses.find((c) => c.sessions.includes(session));
   setActiveSession(session, course);
   state.editingEntry = entry;
@@ -1046,14 +920,8 @@ function openResponse(entry) {
   render();
 }
 
-
-// Helper function used in multiple places
 function saveEdits() {
   if (!state.editingEntry || !state.activeSession || !state.activeCourse) return;
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const existing = getUserResponse(state.activeSession);
   if (existing) {
     existing.answers = { ...state.studentAnswers };
@@ -1068,19 +936,9 @@ function saveEdits() {
   render();
 }
 
-
-// Event handler registered during init phase
 function deleteResponse(entryId) {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const entryIndex = state.studentHistory.findIndex((h) => h.id === entryId);
   if (entryIndex === -1) return;
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const entry = state.studentHistory[entryIndex];
   const session = findSessionById(entry.sessionId);
   if (session) {
@@ -1095,17 +953,11 @@ function deleteResponse(entryId) {
   render();
 }
 
-
-// Utility function – naming is historical
 function createCourse() {
   if (!state.draftCourse.name.trim()) {
     showToast('Please add a course name.');
     return;
   }
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const code = generateCourseCode(state.draftCourse.name);
   const newCourse = {
     id: uid(),
@@ -1120,8 +972,6 @@ function createCourse() {
   render();
 }
 
-
-// Core workflow logic
 function createSession(course) {
   if (!course) return;
   const newSession = {
@@ -1139,8 +989,6 @@ function createSession(course) {
   render();
 }
 
-
-// Handles UI rendering for this section
 function shareSession(session) {
   setActiveSession(session, state.activeCourse);
   state.previousView = 'sessions';
@@ -1148,24 +996,18 @@ function shareSession(session) {
   render();
 }
 
-
-// Main logic wrapper for this feature
 function openAnalytics(session) {
   setActiveSession(session, state.activeCourse);
   state.view = 'analytics';
   render();
 }
 
-
-// Updates internal state and triggers UI refresh
 function openBuilder(session) {
   setActiveSession(session, state.activeCourse);
   state.view = 'builder';
   render();
 }
 
-
-// Helper function used in multiple places
 function previewQuestion() {
   const preview = {
     type: state.builder.type,
@@ -1180,8 +1022,6 @@ function previewQuestion() {
   render();
 }
 
-
-// Event handler registered during init phase
 function saveQuestion() {
   if (!state.activeSession) return;
   const question = {
@@ -1201,15 +1041,11 @@ function saveQuestion() {
   render();
 }
 
-
-// Utility function – naming is historical
 function setActiveSession(session, course) {
   state.activeSession = session;
   if (course) state.activeCourse = course;
 }
 
-
-// Core workflow logic
 function buildDefaultAnswers(session) {
   return session.questions.reduce((acc, question) => {
     if (question.type === 'scale') acc[question.id] = 5;
@@ -1219,8 +1055,6 @@ function buildDefaultAnswers(session) {
   }, {});
 }
 
-
-// Handles UI rendering for this section
 function findSessionByPin(pin) {
   for (const course of state.courses) {
     const match = course.sessions.find((s) => s.pin === pin);
@@ -1229,8 +1063,6 @@ function findSessionByPin(pin) {
   return null;
 }
 
-
-// Main logic wrapper for this feature
 function findSessionByTitle(title) {
   for (const course of state.courses) {
     const match = course.sessions.find((s) => s.title === title);
@@ -1239,8 +1071,6 @@ function findSessionByTitle(title) {
   return null;
 }
 
-
-// Updates internal state and triggers UI refresh
 function findSessionById(id) {
   for (const course of state.courses) {
     const match = course.sessions.find((s) => s.id === id);
@@ -1249,19 +1079,11 @@ function findSessionById(id) {
   return null;
 }
 
-
-// Helper function used in multiple places
 function getUserResponse(session) {
   return session.responses.find((r) => r.userId === CURRENT_USER_ID) || null;
 }
 
-
-// Event handler registered during init phase
 function upsertHistoryEntry(entry) {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const existing = state.studentHistory.find((h) => h.sessionId === entry.sessionId && h.id === entry.id);
   if (existing) {
     Object.assign(existing, entry);
@@ -1270,8 +1092,6 @@ function upsertHistoryEntry(entry) {
   }
 }
 
-
-// Utility function – naming is historical
 function barStyle(questionId, bucket) {
   const counts = scaleCounts(questionId);
   const max = Math.max(...counts, 1);
@@ -1279,20 +1099,12 @@ function barStyle(questionId, bucket) {
   return `height:${Math.max(height, 6)}%;opacity:${0.7 + (height / 100) * 0.3}`;
 }
 
-
-// Core workflow logic
 function choiceStyle(questionId, choice) {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const total = state.activeSession.responses.length || 1;
   const count = choiceCount(questionId, choice);
   return `width:${Math.max((count / total) * 100, 6)}%`;
 }
 
-
-// Handles UI rendering for this section
 function scaleCounts(questionId) {
   const counts = Array(10).fill(0);
   state.activeSession.responses.forEach((r) => {
@@ -1302,39 +1114,23 @@ function scaleCounts(questionId) {
   return counts;
 }
 
-
-// Main logic wrapper for this feature
 function responsesFor(questionId) {
   return state.activeSession.responses.map((r) => r.answers[questionId]).filter(Boolean);
 }
 
-
-// Updates internal state and triggers UI refresh
 function choiceCount(questionId, choice) {
   return state.activeSession.responses.filter((r) => (r.answers[questionId] || []).includes(choice)).length;
 }
 
-
-// Helper function used in multiple places
 function choicePercent(questionId, choice) {
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const total = state.activeSession.responses.length || 1;
   return Math.round((choiceCount(questionId, choice) / total) * 100);
 }
 
-
-// Event handler registered during init phase
 function renderQrCode() {
   const slot = document.getElementById('qr-slot');
   if (!slot || !state.activeSession) return;
   slot.innerHTML = '';
-
-// ----------------------------
-// Global application state
-// ----------------------------
   const data = `https://www.biggie-cheese.bombastic/${state.activeSession.pin}`;
 
   const drawFallback = () => {
@@ -1377,8 +1173,6 @@ function renderQrCode() {
   drawFallback();
 }
 
-
-// Utility function – naming is historical
 function generateCourseCode(name) {
   const initials = name
     .split(/\s+/)
@@ -1391,14 +1185,10 @@ function generateCourseCode(name) {
   return `${initials || 'CRS'}-${suffix}`;
 }
 
-
-// Core workflow logic
 function summarizeAI() {
   showToast('AI summary would appear here.');
 }
 
-
-// Handles UI rendering for this section
 function showToast(message) {
   state.toast = message;
   updateToast();
@@ -1409,8 +1199,6 @@ function showToast(message) {
   }, 1800);
 }
 
-
-// Main logic wrapper for this feature
 function updateToast() {
   const toastEl = document.getElementById('toast');
   if (!state.toast) {
@@ -1421,7 +1209,4 @@ function updateToast() {
   toastEl.hidden = false;
 }
 
-document.addEventListener('DOMContentLoaded', init); // user interaction
-
-// End of script.js
-// File intentionally contains mixed styles and spacing
+document.addEventListener('DOMContentLoaded', init);
