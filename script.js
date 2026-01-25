@@ -17,7 +17,7 @@ const state = {
   studentAnswers: {},
   studentHistory: [],
   toast: '',
-  draftCourse: { name: '' },
+  draftCourse: { name: '', requiredEvaluations: 3, bonusPerEvaluation: 1 },
   builder: { type: 'scale', title: '', options: '' },
   preview: null,
 };
@@ -213,6 +213,35 @@ function renderCompletion() {
 }
 
 function renderHistory() {
+  const bonusCards = state.courses
+    .map((course) => {
+      const requiredEvaluations = course.requiredEvaluations ?? 3;
+      const bonusPerEvaluation = course.bonusPerEvaluation ?? 1;
+      const maxBonus = course.maxBonus ?? requiredEvaluations * bonusPerEvaluation;
+      const evalCount = state.studentHistory.filter((entry) => entry.courseId === course.id).length;
+      const earnedBonus = Math.min(evalCount, requiredEvaluations) * bonusPerEvaluation;
+      const progress = Math.min(evalCount / requiredEvaluations, 1);
+      return `
+        <div class="bonus-card">
+          <div class="bonus-header">
+            <div>
+              <p class="eyebrow">Bonus tracker</p>
+              <h3>${course.name}</h3>
+              <p class="muted small">${bonusPerEvaluation}% per evaluation • max ${maxBonus}%</p>
+            </div>
+            <div class="bonus-pill">${earnedBonus.toFixed(1)}%</div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" style="width:${progress * 100}%"></div>
+          </div>
+          <div class="bonus-meta">
+            <span>${evalCount} / ${requiredEvaluations} evaluations completed</span>
+            <span class="muted">+${bonusPerEvaluation}% per evaluation</span>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
   return `
     <section class="screen">
       <div class="panel">
@@ -222,6 +251,9 @@ function renderHistory() {
             <h2>Submitted evaluations</h2>
           </div>
         </header>
+        <div class="bonus-grid">
+          ${bonusCards || '<p class="muted">No bonus trackers yet. Submit your first evaluation to start earning bonuses.</p>'}
+        </div>
         <div class="card-list">
           ${state.studentHistory
             .map(
@@ -342,7 +374,31 @@ function renderCourses() {
           <button class="ghost" id="sign-out">Sign out</button>
         </header>
         <div class="create-row">
-          <input id="course-name" placeholder="New course name" value="${state.draftCourse.name || ''}" />
+          <div class="form-field compact">
+            <label for="course-name">Course name</label>
+            <input id="course-name" placeholder="New course name" value="${state.draftCourse.name || ''}" />
+          </div>
+          <div class="form-field compact">
+            <label for="course-evals">Evaluations for full bonus</label>
+            <input
+              id="course-evals"
+              type="number"
+              min="1"
+              max="20"
+              value="${state.draftCourse.requiredEvaluations}"
+            />
+          </div>
+          <div class="form-field compact">
+            <label for="course-bonus">Bonus per evaluation (%)</label>
+            <input
+              id="course-bonus"
+              type="number"
+              min="0.5"
+              step="0.5"
+              max="5"
+              value="${state.draftCourse.bonusPerEvaluation}"
+            />
+          </div>
           <div class="spacer"></div>
           <button class="primary" id="create-course">Create course</button>
         </div>
@@ -354,7 +410,7 @@ function renderCourses() {
                   <div>
                     <p class="eyebrow">${course.code}</p>
                     <h3>${course.name}</h3>
-                    <p class="muted small">${course.sessions.length} sessions</p>
+                    <p class="muted small">${course.sessions.length} sessions • ${course.bonusPerEvaluation}% bonus per eval (max ${course.maxBonus}%)</p>
                   </div>
                   <div class="card-actions">
                     <button class="secondary" data-open-course="${course.id}">View sessions</button>
@@ -381,6 +437,7 @@ function renderSessions() {
       </section>
     `;
   }
+  const participantCount = countCourseParticipants(state.activeCourse);
   return `
     <section class="screen">
       <div class="panel">
@@ -389,6 +446,7 @@ function renderSessions() {
             <p class="eyebrow">Course</p>
             <h2>${state.activeCourse.name}</h2>
             <p class="muted small">${state.activeCourse.code}</p>
+            <p class="muted small">${participantCount} participants so far</p>
           </div>
           <div class="panel-actions">
             <button class="secondary" id="add-session">+ Add new session</button>
@@ -730,6 +788,12 @@ function bindHandlers(view) {
     document.getElementById('course-name').addEventListener('input', (e) => {
       state.draftCourse.name = e.target.value;
     });
+    document.getElementById('course-evals').addEventListener('input', (e) => {
+      state.draftCourse.requiredEvaluations = Number(e.target.value);
+    });
+    document.getElementById('course-bonus').addEventListener('input', (e) => {
+      state.draftCourse.bonusPerEvaluation = Number(e.target.value);
+    });
     document.getElementById('create-course').addEventListener('click', createCourse);
     document.getElementById('sign-out').addEventListener('click', () => {
       state.role = 'student';
@@ -970,16 +1034,29 @@ function createCourse() {
     showToast('Please add a course name.');
     return;
   }
+  const requiredEvaluations = Number(state.draftCourse.requiredEvaluations);
+  const bonusPerEvaluation = Number(state.draftCourse.bonusPerEvaluation);
+  if (!Number.isFinite(requiredEvaluations) || requiredEvaluations < 1) {
+    showToast('Please enter how many evaluations are needed for the full bonus.');
+    return;
+  }
+  if (!Number.isFinite(bonusPerEvaluation) || bonusPerEvaluation <= 0) {
+    showToast('Please enter a valid bonus per evaluation.');
+    return;
+  }
   const code = generateCourseCode(state.draftCourse.name);
   const newCourse = {
     id: uid(),
     name: state.draftCourse.name,
     code,
+    requiredEvaluations,
+    bonusPerEvaluation,
+    maxBonus: Number((requiredEvaluations * bonusPerEvaluation).toFixed(1)),
     sessions: [],
   };
   state.courses.push(newCourse);
   state.activeCourse = newCourse;
-  state.draftCourse = { name: '' };
+  state.draftCourse = { name: '', requiredEvaluations: 3, bonusPerEvaluation: 1 };
   showToast(`Course created (${code})`);
   render();
 }
@@ -1102,6 +1179,17 @@ function upsertHistoryEntry(entry) {
   } else {
     state.studentHistory.unshift(entry);
   }
+}
+
+function countCourseParticipants(course) {
+  if (!course) return 0;
+  const participants = new Set();
+  course.sessions.forEach((session) => {
+    session.responses.forEach((response) => {
+      if (response.userId) participants.add(response.userId);
+    });
+  });
+  return participants.size;
 }
 
 function barStyle(questionId, bucket) {
