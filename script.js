@@ -135,7 +135,6 @@ function renderStudentSession() {
                 <input type="range" min="1" max="10" data-question="${question.id}" value="${state.studentAnswers[question.id] ?? 5}" />
                 <div class="pill value-pill" id="pill-${question.id}">${state.studentAnswers[question.id] ?? 5}</div>
               </div>
-              ${renderScaleLabels()}
             </div>
           </div>
         `;
@@ -670,7 +669,9 @@ function renderAnalytics() {
 function bindHandlers(view) {
   if (view === 'landing') {
     document.getElementById('student-pin').addEventListener('input', (e) => {
-      state.student.pin = e.target.value;
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val;
+      state.student.pin = val;
     });
     document.getElementById('join-pin').addEventListener('click', joinByPin);
     document.getElementById('use-camera').addEventListener('click', simulateScan);
